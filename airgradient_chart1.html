@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>AirGradient PM2.5 Live Chart</title>
   <script src="https://unpkg.com/chart.js@4.4.0/dist/chart.umd.js"></script>
+  <!-- ★ 추가 -->
+  <script src="https://thunkable.github.io/webviewer-extension/thunkableWebviewerExtension.js"></script>
   <style>
     html, body {
       margin: 0;
@@ -26,10 +28,10 @@
     const chart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: [],            // x축 (측정 번호)
+        labels: [],
         datasets: [{
           label: 'PM2.5 (µg/m³)',
-          data: [],            // y축 (pm02_corrected 값)
+          data: [],
           borderWidth: 2
         }]
       },
@@ -43,14 +45,13 @@
       }
     });
 
-    // 새 점 추가하는 함수
+    // 새 점 추가
     let index = 0;
     function addPoint(value) {
       index++;
-      chart.data.labels.push(String(index));     // 1,2,3,... 측정 번호
-      chart.data.datasets[0].data.push(value);  // 값 추가
+      chart.data.labels.push(String(index));
+      chart.data.datasets[0].data.push(value);
 
-      // 최대 30개까지만 유지
       if (chart.data.labels.length > 30) {
         chart.data.labels.shift();
         chart.data.datasets[0].data.shift();
@@ -58,10 +59,9 @@
       chart.update();
     }
 
-    // Thunkable WebViewer에서 보내는 메시지 받기
-    window.addEventListener('message', function (event) {
-      // Thunkable에서 message 파라미터로 숫자(또는 숫자 형태 문자열) 보냄
-      const v = parseFloat(event.data);
+    // ★ Thunkable에서 오는 메시지 받기
+    ThunkableWebviewerExtension.receiveMessage(function (message) {
+      const v = parseFloat(message);
       if (!isNaN(v)) {
         addPoint(v);
       }

@@ -3,6 +3,8 @@ import requests
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
+import plotly.graph_objects as go
+
 
 # --- 설정 ---
 API_URL = "https://api.airgradient.com/public/api/v1/locations/measures/current"
@@ -33,11 +35,25 @@ def fetch_data():
         st.error(f"데이터 연결 오류: {e}")
         return None
 
+
 # 데이터 가져오기
 data = fetch_data()
 
 if data:
     df = pd.DataFrame(data)
+    latest = df.iloc[0]
+    new_data = {
+    "time": datetime.now(),
+    "co2": latest["rco2"],
+    "temp": latest["atmp"],
+    "humidity": latest["rhum"],
+    "tvoc": latest["tvocIndex"],
+    "pm01": latest["pm01"],
+    "pm25": latest["pm02"],
+    "pm10": latest["pm10"],
+    "nox": latest["noxIndex"]
+    }
+    
     
     # 헤더 섹션
     last_update = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -47,6 +63,25 @@ if data:
     # 1. 주요 지표 (Metric 카드)
     # 첫 번째 장소의 데이터를 기준으로 표시 (리스트 형태이므로)
     latest = df.iloc[0]
+    file_path = "data_log.csv"
+
+    # 1. 기존 데이터 불러오기
+    try:
+        history_df = pd.read_csv(file_path)
+        history_df["time"] = pd.to_datetime(history_df["time"])  # 시간 타입 변환
+    except:
+        history_df = pd.DataFrame(columns=["time", "co2", "temp", "humidity", "tvoc", "nox", "pm2.5"])
+
+    # 2. 새 데이터 추가
+    new_row = pd.DataFrame([new_data])
+    history_df = pd.concat([history_df, new_row], ignore_index=True)
+
+    # 3. (선택) 최근 데이터만 유지 (예: 100개)
+    history_df = history_df.tail(100)
+
+    # 4. 저장
+    history_df.to_csv(file_path, index=False)
+
     co2_val = latest['rco2']
     
     m1, m2, m3, m4 = st.columns(4)
@@ -61,30 +96,38 @@ if data:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("📊 미세먼지 단계 (PM01, PM02, PM10)")
-        pm_data = pd.DataFrame({
-            'Category': ['PM 1.0', 'PM 2.5', 'PM 10'],
-            'Value': [latest['pm01'], latest['pm02'], latest['pm10']]
-        })
-        fig_pm = px.bar(pm_data, x='Category', y='Value', color='Category',
-                        range_y=[0, max(pm_data['Value']) + 10],
-                        color_discrete_sequence=px.colors.qualitative.Pastel)
+        st.subheader("📊 대기질 지수 (PM2.5,TVOC,NOx)")
+        max_val = history_df[["tvoc", "pm25", "nox"]].max().max()
+        fig_pm = px.line(history_df, x='time', y=["tvoc", "pm25", "nox"], markers=True, range_y=[0, max_val + 20])
         st.plotly_chart(fig_pm, use_container_width=True)
 
     with col2:
-        st.subheader("💡 대기질 지수 (TVOC & NOx)")
-        index_data = pd.DataFrame({
-            'Index': ['TVOC Index', 'NOx Index'],
-            'Score': [latest['tvocIndex'], latest['noxIndex']]
-        })
-        fig_index = px.bar(index_data, x='Index', y='Score', color='Index',
-                          range_y=[0, 500], # 인덱스는 보통 500 기준
-                          color_discrete_sequence=px.colors.qualitative.Safe)
-        st.plotly_chart(fig_index, use_container_width=True)
+        st.subheader("💡 대기질 지수 (CO2)")
+        max_val = history_df["co2"]
+        fig_pm = px.line(history_df, x='time', y=["co2"], markers=True, range_y=[0,  max_val+ 20])
+        st.plotly_chart(fig_pm, use_container_width=True)
+
 
     # 3. 상세 데이터 테이블
     with st.expander("🔍 센서 원본 데이터 확인"):
-        st.write(df)
+
+        df_display = df.rename(columns={
+            "pm01": "PM1.0",
+            "pm02": "PM2.5",
+            "pm10": "PM10",
+            "rco2": "CO2",
+            "tvocIndex": "TVOC",
+            "noxIndex": "NOx",
+            "atmp": "온도",
+            "rhum": "습도"
+        })
+
+        df_display = df_display[[
+            "PM1.0", "PM2.5", "PM10",
+            "CO2", "TVOC", "NOx",
+            "온도", "습도"
+        ]]
+        st.dataframe(df_display, use_container_width=True)
 
 else:
     st.warning("데이터를 불러올 수 없습니다. API 토큰을 다시 확인해 주세요.")
@@ -103,6 +146,7 @@ if co2_val > 1000:
 if co2_val > 1000:
     st.sidebar.markdown("### ❗ 긴급 알림")
     st.sidebar.error("실내 공기질 위험 수준!")
+
 
 import smtplib
 from email.mime.text import MIMEText

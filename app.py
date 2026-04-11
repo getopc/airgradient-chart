@@ -10,7 +10,7 @@ from email.mime.text import MIMEText
 # ==========================================
 # 1. 설정값
 # ==========================================
-DEVICE_IP = "172.30.1.55"
+DEVICE_IP = "172.30.1.65"
 API_URL = "https://api.airgradient.com/public/api/v1/locations/measures/current"
 API_TOKEN = "74cf04f0-11c0-4498-9d7f-e191977faeb4"
 
@@ -210,6 +210,30 @@ if data:
                 st.session_state.last_changed = now
                 st.toast("환기 시스템 정지", icon="🛑")
 
+    # ==========================================
+    # 8. 경고 및 이메일 알림 로직
+    # ==========================================
+    # co2_val 대신 현재 코드에서 정의된 'co2' 변수를 사용합니다.
+    if co2 > 1000:
+        st.error(f"🚨 실내 이산화탄소 농도 위험! (현재: {co2} ppm)")
+        
+        # 메일을 아직 안 보냈을 때만 발송 (중복 발송 방지)
+        if not st.session_state.alert_sent:
+            with st.spinner("📧 경고 이메일을 발송 중입니다..."):
+                send_email_alert(
+                    "⚠️ [경고] 실내 공기질 위험 알림",
+                    f"현재 CO2 농도가 {co2}ppm으로 위험 기준치(1000ppm)를 초과했습니다.\n즉시 환기 시스템을 점검하거나 창문을 열어주세요!"
+                )
+                st.session_state.alert_sent = True  # 발송 완료 상태로 변경
+                st.success("✅ 경고 메일이 성공적으로 발송되었습니다.")
+    
+    elif co2 < 800:
+        # 수치가 800 미만으로 떨어져 안전해지면 발송 가능 상태로 초기화
+        if st.session_state.alert_sent:
+            st.info("✅ CO2 수치가 정상 범위로 회복되었습니다. 알림 상태가 초기화됩니다.")
+            st.session_state.alert_sent = False
+
+    
     # ==========================================
     # 8. 경고 및 알림
     # ==========================================

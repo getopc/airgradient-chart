@@ -152,39 +152,73 @@ if data:
     with col1:
         st.subheader("공기질 지표 (TVOC, PM2.5, NOX)")
         chart_cols = [col for col in ["tvoc", "PM2.5", "nox"] if col in history_df.columns]
+    
+        # 1. 그래프 생성
         fig1 = px.line(history_df, x="time", y=chart_cols, template="plotly_dark")
-        st.plotly_chart(fig1, use_container_width=True)
+    
+        # 2. 레이아웃 설정 (축 고정 및 드래그 방지)
+        fig1.update_layout(
+            xaxis=dict(fixedrange=True), 
+            yaxis=dict(fixedrange=True), 
+            dragmode=False
+        )
+    
+        # 3. 마지막에 한 번만 출력 (설정값 포함)
+        st.plotly_chart(
+            fig1, 
+            use_container_width=True, 
+            config={
+                'displayModeBar': False, 
+                'scrollZoom': False
+            }
+        )
 
     with col2:
         st.subheader("CO2 농도 변화")
+        
+        # 1. 그래프 생성
         fig2 = px.line(history_df, x="time", y="co2", template="plotly_dark")
-        st.plotly_chart(fig2, use_container_width=True)
+        
+        # 2. 레이아웃 설정 (축 고정, 드래그 방지)
+        fig2.update_layout(
+            xaxis=dict(fixedrange=True), 
+            yaxis=dict(fixedrange=True),
+            dragmode=False
+        )
+        
+        # 3. 마지막에 한 번만 출력 (메뉴바 숨기기, 휠 줌 차단 포함)
+        st.plotly_chart(
+            fig2, 
+            use_container_width=True, 
+            config={
+                'displayModeBar': False, 
+                'scrollZoom': False
+            }
+        )
 
-    st.divider()
     st.subheader("📋 최근 측정 기록 (상세 데이터)")
 
+    # (데이터 전처리 로직은 동일)
     display_df = history_df.copy()
     display_df["time"] = pd.to_datetime(display_df["time"], errors="coerce").dt.strftime("%Y-%m-%d %H:%M:%S")
     display_df = display_df.sort_values(by="time", ascending=False)
-
     display_cols = [col for col in ["time", "co2", "temp", "humidity", "tvoc", "nox", "PM2.5"] if col in display_df.columns]
-    display_df = display_df[display_cols]
+    latest_row = display_df[display_cols].head(1)
 
-    latest_row = display_df.head(1)
+    # 1. 데이터 준비
+    latest_row = display_df[display_cols].head(1).copy()
 
-    st.dataframe(
-        latest_row,
-        use_container_width=True,
-        column_config={
-            "time": "측정 시간",
-            "co2": st.column_config.NumberColumn("CO2 (ppm)", format="%d"),
-            "temp": st.column_config.NumberColumn("온도 (°C)", format="%.1f"),
-            "humidity": st.column_config.NumberColumn("습도 (%)", format="%d"),
-            "tvoc": st.column_config.NumberColumn("TVOC", format="%d"),
-            "nox": st.column_config.NumberColumn("NOX", format="%d"),
-            "PM2.5": st.column_config.NumberColumn("PM2.5", format="%d")
-    }
-)
+    # 2. 특정 컬럼 소수점 1자리로 반올림 (추가된 부분)
+    # round(1)은 소수점 첫째 자리까지 남깁니다.
+    latest_row["temp"] = latest_row["temp"].astype(float).round(1)
+    latest_row["PM2.5"] = latest_row["PM2.5"].astype(float).round(1)
+
+    # 3. 컬럼명 변경
+    latest_row.columns = ["측정 시간", "CO2 (ppm)", "온도 (°C)", "습도 (%)", "TVOC", "NOX", "PM2.5"]
+
+    # 4. 출력 (인덱스 숨기기 포함)
+    st.table(latest_row.set_index("측정 시간"))
+
 
     # ==========================================
     # 7. 자동 제어 로직

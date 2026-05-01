@@ -254,7 +254,7 @@ if data:
     
     # 환기 제어 로직
     if elapsed >= MIN_HOLD_SECONDS:
-        if co2 >= 800:
+        if co2 >= 2800:
             if st.session_state.plug_state != "ON":
                 st.sidebar.info("ON 조건 충족! 명령 발송 중...") # 실행 여부 확인용
                 if control_tasmota_mqtt("ON"):
@@ -266,7 +266,7 @@ if data:
             else:
                 st.sidebar.write("이미 ON 상태입니다.")
             
-        elif co2 < 500:
+        elif co2 < 1800:
             if st.session_state.plug_state != "OFF":
                 st.sidebar.info("OFF 조건 충족! 명령 발송 중...") # 실행 여부 확인용
                 if control_tasmota_mqtt("OFF"):

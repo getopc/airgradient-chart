@@ -272,18 +272,68 @@ if data:
     now = time.time()
     elapsed = now - st.session_state.last_changed
 
-    # 환기 제어 로직
+    # ==========================================
+    # 7. 제어 모드 선택 (사이드바)
+    # ==========================================
+    st.sidebar.divider()
+    st.sidebar.header("⚙️ 제어 설정")
+
+    # 자동 모드 활성화 여부 스위치 (기본값: True)
+    auto_mode = st.sidebar.toggle("🤖 자동 환기 모드", value=True)
+
+    if auto_mode:
+        st.sidebar.success("상태: 자동 제어 중")
+    else:
+        st.sidebar.warning("상태: 수동 제어 중")
+
+# ==========================================
+# 8. 환기 제어 로직 (수동 버튼 + 자동 로직)
+# ==========================================
+st.divider()
+st.subheader("🎮 장치 제어")
+
+# (1) 수동 제어 버튼은 언제나 보이도록 배치
+col_on, col_off = st.columns(2)
+with col_on:
+    if st.button("🔌 즉시 켜기 (ON)", use_container_width=True, type="primary"):
+        if control_tasmota_mqtt("ON"):
+            st.session_state.plug_state = "ON"
+            st.session_state.last_changed = time.time()
+            st.toast("수동 명령: 가동 시작", icon="✅")
+            st.rerun()
+
+with col_off:
+    if st.button("🚫 즉시 끄기 (OFF)", use_container_width=True):
+        if control_tasmota_mqtt("OFF"):
+            st.session_state.plug_state = "OFF"
+            st.session_state.last_changed = time.time()
+            st.toast("수동 명령: 가동 중지", icon="🛑")
+            st.rerun()
+
+# (2) 자동 제어 로직 (auto_mode가 True일 때만 실행)
+now = time.time()
+elapsed = now - st.session_state.last_changed
+
+if auto_mode:
+    # 5분이 지났는지 확인
     if elapsed >= MIN_HOLD_SECONDS:
         if co2 >= 800 and st.session_state.plug_state != "ON":
             if control_tasmota_mqtt("ON"):
                 st.session_state.plug_state = "ON"
                 st.session_state.last_changed = now
-                st.toast("환기 가동!", icon="✅")
+                st.toast("자동 환기 시작 (CO2 높음)", icon="🤖")
+        
         elif co2 < 500 and st.session_state.plug_state != "OFF":
             if control_tasmota_mqtt("OFF"):
                 st.session_state.plug_state = "OFF"
                 st.session_state.last_changed = now
-                st.toast("환기 정지", icon="🛑")
+                st.toast("자동 환기 종료 (공기 깨끗)", icon="🍃")
+    else:
+        # 5분이 안 지났을 때 사이드바에 남은 시간 표시 (선택 사항)
+        st.sidebar.info(f"자동 제어 대기 중: {int(MIN_HOLD_SECONDS - elapsed)}초 남음")
+else:
+    # 수동 모드일 때는 자동 로직을 통째로 무시합니다.
+    pass
 
     # 이메일 알림 로직 (하나로 통합)
     if co2 > 1000:

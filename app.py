@@ -244,21 +244,39 @@ if data:
     # ==========================================
     # 7. 자동 제어 로직
     # ==========================================
+    st.sidebar.divider()
+    st.sidebar.subheader("🛠 제어 시스템 상태")
+    st.sidebar.write(f"현재 CO2: {co2} ppm")
+    st.sidebar.write(f"현재 플러그 상태: {st.session_state.plug_state}")
+    st.sidebar.write(f"마지막 변경 후 경과: {int(elapsed)}초 / {MIN_HOLD_SECONDS}초")
     now = time.time()
     elapsed = now - st.session_state.last_changed
 
     # 환기 제어 로직
     if elapsed >= MIN_HOLD_SECONDS:
-        if co2 >= 800 and st.session_state.plug_state != "ON":
+    if co2 >= 800:
+        if st.session_state.plug_state != "ON":
+            st.sidebar.info("ON 조건 충족! 명령 발송 중...") # 실행 여부 확인용
             if control_tasmota_mqtt("ON"):
                 st.session_state.plug_state = "ON"
                 st.session_state.last_changed = now
                 st.toast("환기 가동!", icon="✅")
-        elif co2 < 500 and st.session_state.plug_state != "OFF":
+            else:
+                st.sidebar.error("MQTT 발송 실패!")
+        else:
+            st.sidebar.write("이미 ON 상태입니다.")
+            
+    elif co2 < 500:
+        if st.session_state.plug_state != "OFF":
+            st.sidebar.info("OFF 조건 충족! 명령 발송 중...") # 실행 여부 확인용
             if control_tasmota_mqtt("OFF"):
                 st.session_state.plug_state = "OFF"
                 st.session_state.last_changed = now
                 st.toast("환기 정지", icon="🛑")
+            else:
+                st.sidebar.error("MQTT 발송 실패!")
+        else:
+            st.sidebar.write("이미 OFF 상태입니다.")
 
     # 이메일 알림 로직 (하나로 통합)
     if co2 > 1000:

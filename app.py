@@ -15,7 +15,7 @@ DEVICE_IP = "172.30.1.94"
 API_URL = "https://api.airgradient.com/public/api/v1/locations/measures/current"
 API_TOKEN = "74cf04f0-11c0-4498-9d7f-e191977faeb4"
 
-MIN_HOLD_SECONDS = 10
+MIN_HOLD_SECONDS = 300
 REFRESH_INTERVAL = 5
 FILE_PATH = "data_log.csv"
 MQTT_BROKER = "8738ec3a2de44ce7926a5be975e970e3.s1.eu.hivemq.cloud" # 본인의 Cluster URL
@@ -242,41 +242,48 @@ if data:
 
 
     # ==========================================
+    # 7-0. 수동 제어 섹션 (Manual Control)
+    # ==========================================
+    st.divider()
+    st.subheader("🎮 수동 장치 제어")
+
+    col_on, col_off = st.columns(2)
+     
+    with col_on:
+        if st.button("🔌 플러그 켜기 (ON)", use_container_width=True, type="primary"):
+            with st.spinner("명령 전송 중..."):
+                if control_tasmota_mqtt("ON"):
+                    st.session_state.plug_state = "ON"
+                    st.session_state.last_changed = time.time()  # 수동 제어도 시간 기록 갱신
+                    st.toast("수동: 환기 가동!", icon="✅")
+                    st.rerun()  # 상태 반영을 위해 즉시 새로고침
+
+    with col_off:
+        if st.button("🚫 플러그 끄기 (OFF)", use_container_width=True):
+            with st.spinner("명령 전송 중..."):
+                if control_tasmota_mqtt("OFF"):
+                    st.session_state.plug_state = "OFF"
+                    st.session_state.last_changed = time.time()
+                    st.toast("수동: 환기 정지", icon="🛑")
+                    st.rerun()
+    # ==========================================
     # 7. 자동 제어 로직
     # ==========================================
     now = time.time()
     elapsed = now - st.session_state.last_changed
-    st.sidebar.divider()
-    st.sidebar.subheader("🛠 제어 시스템 상태")
-    st.sidebar.write(f"현재 CO2: {co2} ppm")
-    st.sidebar.write(f"현재 플러그 상태: {st.session_state.plug_state}")
-    st.sidebar.write(f"마지막 변경 후 경과: {int(elapsed)}초 / {MIN_HOLD_SECONDS}초")
-    
+
     # 환기 제어 로직
     if elapsed >= MIN_HOLD_SECONDS:
-        if co2 >= 2800:
-            if st.session_state.plug_state != "ON":
-                st.sidebar.info("ON 조건 충족! 명령 발송 중...") # 실행 여부 확인용
-                if control_tasmota_mqtt("ON"):
-                    st.session_state.plug_state = "ON"
-                    st.session_state.last_changed = now
-                    st.toast("환기 가동!", icon="✅")
-                else:
-                    st.sidebar.error("MQTT 발송 실패!")
-            else:
-                st.sidebar.write("이미 ON 상태입니다.")
-            
-        elif co2 < 1800:
-            if st.session_state.plug_state != "OFF":
-                st.sidebar.info("OFF 조건 충족! 명령 발송 중...") # 실행 여부 확인용
-                if control_tasmota_mqtt("OFF"):
-                    st.session_state.plug_state = "OFF"
-                    st.session_state.last_changed = now
-                    st.toast("환기 정지", icon="🛑")
-                else:
-                    st.sidebar.error("MQTT 발송 실패!")
-            else:
-                st.sidebar.write("이미 OFF 상태입니다.")
+        if co2 >= 800 and st.session_state.plug_state != "ON":
+            if control_tasmota_mqtt("ON"):
+                st.session_state.plug_state = "ON"
+                st.session_state.last_changed = now
+                st.toast("환기 가동!", icon="✅")
+        elif co2 < 500 and st.session_state.plug_state != "OFF":
+            if control_tasmota_mqtt("OFF"):
+                st.session_state.plug_state = "OFF"
+                st.session_state.last_changed = now
+                st.toast("환기 정지", icon="🛑")
 
     # 이메일 알림 로직 (하나로 통합)
     if co2 > 1000:

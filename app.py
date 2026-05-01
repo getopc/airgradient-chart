@@ -244,14 +244,14 @@ if data:
     # ==========================================
     # 7. 자동 제어 로직
     # ==========================================
+    now = time.time()
+    elapsed = now - st.session_state.last_changed
     st.sidebar.divider()
     st.sidebar.subheader("🛠 제어 시스템 상태")
     st.sidebar.write(f"현재 CO2: {co2} ppm")
     st.sidebar.write(f"현재 플러그 상태: {st.session_state.plug_state}")
     st.sidebar.write(f"마지막 변경 후 경과: {int(elapsed)}초 / {MIN_HOLD_SECONDS}초")
-    now = time.time()
-    elapsed = now - st.session_state.last_changed
-
+    
     # 환기 제어 로직
     if elapsed >= MIN_HOLD_SECONDS:
         if co2 >= 800:

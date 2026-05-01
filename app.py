@@ -15,7 +15,7 @@ DEVICE_IP = "172.30.1.94"
 API_URL = "https://api.airgradient.com/public/api/v1/locations/measures/current"
 API_TOKEN = "74cf04f0-11c0-4498-9d7f-e191977faeb4"
 
-MIN_HOLD_SECONDS = 300
+MIN_HOLD_SECONDS = 10
 REFRESH_INTERVAL = 5
 FILE_PATH = "data_log.csv"
 MQTT_BROKER = "8738ec3a2de44ce7926a5be975e970e3.s1.eu.hivemq.cloud" # 본인의 Cluster URL

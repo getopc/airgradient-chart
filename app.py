@@ -254,29 +254,29 @@ if data:
 
     # 환기 제어 로직
     if elapsed >= MIN_HOLD_SECONDS:
-    if co2 >= 800:
-        if st.session_state.plug_state != "ON":
-            st.sidebar.info("ON 조건 충족! 명령 발송 중...") # 실행 여부 확인용
-            if control_tasmota_mqtt("ON"):
-                st.session_state.plug_state = "ON"
-                st.session_state.last_changed = now
-                st.toast("환기 가동!", icon="✅")
+        if co2 >= 800:
+            if st.session_state.plug_state != "ON":
+                st.sidebar.info("ON 조건 충족! 명령 발송 중...") # 실행 여부 확인용
+                if control_tasmota_mqtt("ON"):
+                    st.session_state.plug_state = "ON"
+                    st.session_state.last_changed = now
+                    st.toast("환기 가동!", icon="✅")
+                else:
+                    st.sidebar.error("MQTT 발송 실패!")
             else:
-                st.sidebar.error("MQTT 발송 실패!")
-        else:
-            st.sidebar.write("이미 ON 상태입니다.")
+                st.sidebar.write("이미 ON 상태입니다.")
             
-    elif co2 < 500:
-        if st.session_state.plug_state != "OFF":
-            st.sidebar.info("OFF 조건 충족! 명령 발송 중...") # 실행 여부 확인용
-            if control_tasmota_mqtt("OFF"):
-                st.session_state.plug_state = "OFF"
-                st.session_state.last_changed = now
-                st.toast("환기 정지", icon="🛑")
+        elif co2 < 500:
+            if st.session_state.plug_state != "OFF":
+                st.sidebar.info("OFF 조건 충족! 명령 발송 중...") # 실행 여부 확인용
+                if control_tasmota_mqtt("OFF"):
+                    st.session_state.plug_state = "OFF"
+                    st.session_state.last_changed = now
+                    st.toast("환기 정지", icon="🛑")
+                else:
+                    st.sidebar.error("MQTT 발송 실패!")
             else:
-                st.sidebar.error("MQTT 발송 실패!")
-        else:
-            st.sidebar.write("이미 OFF 상태입니다.")
+                st.sidebar.write("이미 OFF 상태입니다.")
 
     # 이메일 알림 로직 (하나로 통합)
     if co2 > 1000:

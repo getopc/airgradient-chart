@@ -380,8 +380,8 @@ else:
     elif co2 < 800:
         st.session_state.alert_sent = False
 
-else:
-    st.warning("🔄 데이터를 불러오는 중이거나 장치에 연결할 수 없습니다.")
+    else:
+        st.warning("🔄 데이터를 불러오는 중이거나 장치에 연결할 수 없습니다.")
 
 # ==========================================
 # 9. 자동 새로고침

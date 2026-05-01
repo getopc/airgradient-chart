@@ -145,8 +145,34 @@ if latest_data:
     st.subheader("📋 최근 측정 기록")
     display_df = history_df.copy().sort_values(by="time", ascending=False).head(5)
     display_df["time"] = display_df["time"].dt.strftime("%H:%M:%S")
-    display_df.columns = ["시간", "CO2(ppm)", "온도(°C)", "습도(%)", "TVOC", "NOX", "PM2.5"]
-    st.table(display_df.set_index("시간"))
+    # 1. 데이터 복사 및 정렬
+    display_df = history_df.copy().sort_values(by="time", ascending=False).head(5)
+
+    # 2. 실제로 존재하는 컬럼만 선택 (개수 불일치 방지)
+    target_cols = ["time", "co2", "temp", "humidity", "tvoc", "nox", "PM2.5"]
+    existing_cols = [col for col in target_cols if col in display_df.columns]
+    display_df = display_df[existing_cols]
+
+    # 3. 시간 형식 변경
+    if "time" in display_df.columns:
+        display_df["time"] = pd.to_datetime(display_df["time"]).dt.strftime("%H:%M:%S")
+
+    # 4. 컬럼 이름 변경 (존재하는 것만 매핑)
+    name_map = {
+        "time": "시간",
+        "co2": "CO2(ppm)",
+        "temp": "온도(°C)",
+        "humidity": "습도(%)",
+        "tvoc": "TVOC",
+        "nox": "NOX",
+        "PM2.5": "PM2.5"
+    }
+
+    # 존재하는 컬럼에 대해서만 이름을 변경합니다.
+    display_df = display_df.rename(columns=name_map)
+
+    # 5. 출력
+    st.table(display_df.set_index("시간") if "시간" in display_df.columns else display_df)
 
     # ==========================================
     # 8. 제어 설정 및 버튼

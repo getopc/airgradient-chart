@@ -138,8 +138,31 @@ if data:
     st.subheader("📋 최근 측정 기록")
     latest_row = history_df.tail(1).copy()
     latest_row["time"] = latest_row["time"].dt.strftime("%Y-%m-%d %H:%M:%S")
-    latest_row.columns = ["시간", "CO2(ppm)", "온도(°C)", "습도(%)", "TVOC", "NOX", "PM2.5"]
-    st.table(latest_row.set_index("시간"))
+    col_map = {
+        "time": "시간",
+        "co2": "CO2(ppm)",
+        "temp": "온도(°C)",
+        "humidity": "습도(%)",
+        "tvoc": "TVOC",
+        "nox": "NOX",
+        "PM2.5": "PM2.5"
+    }
+
+    # 2. 존재하는 컬럼만 추출
+    existing_display_cols = [col for col in col_map.keys() if col in history_df.columns]
+    latest_row = history_df[existing_display_cols].tail(1).copy()
+
+    # 3. 시간 포맷 변경 (존재할 경우만)
+    if "time" in latest_row.columns:
+        latest_row["time"] = pd.to_datetime(latest_row["time"]).dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    # 4. 안전하게 이름 변경 (rename 사용)
+    latest_row = latest_row.rename(columns=col_map)
+
+    # 5. 출력
+    if not latest_row.empty:
+        # '시간' 컬럼이 있으면 인덱스로 설정하고, 없으면 그대로 출력
+        st.table(latest_row.set_index("시간") if "시간" in latest_row.columns else latest_row)
 
     # 자동 제어 설정 (사이드바)
     st.sidebar.divider()

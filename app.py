@@ -22,7 +22,7 @@ MQTT_BROKER = "8738ec3a2de44ce7926a5be975e970e3.s1.eu.hivemq.cloud" # 본인의 
 MQTT_PORT = 8883  # 클라우드 표준 보안 포트
 MQTT_USER = "plug1"
 MQTT_PASS = "Ab1234567@"
-MQTT_TOPIC_CMD = "cmnd/living_fan/Power"
+MQTT_TOPIC_CMD = "cmnd/living_fan/POWER"
 
 # ==========================================
 # 2. 기본 UI 설정

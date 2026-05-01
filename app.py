@@ -242,31 +242,6 @@ if data:
 
 
     # ==========================================
-    # 7-0. 수동 제어 섹션 (Manual Control)
-    # ==========================================
-    st.divider()
-    st.subheader("🎮 수동 장치 제어")
-
-    col_on, col_off = st.columns(2)
-     
-    with col_on:
-        if st.button("🔌 플러그 켜기 (ON)", use_container_width=True, type="primary"):
-            with st.spinner("명령 전송 중..."):
-                if control_tasmota_mqtt("ON"):
-                    st.session_state.plug_state = "ON"
-                    st.session_state.last_changed = time.time()  # 수동 제어도 시간 기록 갱신
-                    st.toast("수동: 환기 가동!", icon="✅")
-                    st.rerun()  # 상태 반영을 위해 즉시 새로고침
-
-    with col_off:
-        if st.button("🚫 플러그 끄기 (OFF)", use_container_width=True):
-            with st.spinner("명령 전송 중..."):
-                if control_tasmota_mqtt("OFF"):
-                    st.session_state.plug_state = "OFF"
-                    st.session_state.last_changed = time.time()
-                    st.toast("수동: 환기 정지", icon="🛑")
-                    st.rerun()
-    # ==========================================
     # 7. 자동 제어 로직
     # ==========================================
     now = time.time()

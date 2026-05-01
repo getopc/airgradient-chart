@@ -6,17 +6,23 @@ from datetime import datetime
 import time
 import smtplib
 from email.mime.text import MIMEText
+import paho.mqtt.client as mqtt
 
 # ==========================================
 # 1. 설정값
 # ==========================================
-DEVICE_IP = "172.30.1.65"
+DEVICE_IP = "172.30.1.94"
 API_URL = "https://api.airgradient.com/public/api/v1/locations/measures/current"
 API_TOKEN = "74cf04f0-11c0-4498-9d7f-e191977faeb4"
 
 MIN_HOLD_SECONDS = 300
 REFRESH_INTERVAL = 5
 FILE_PATH = "data_log.csv"
+MQTT_BROKER = "8738ec3a2de44ce7926a5be975e970e3.s1.eu.hivemq.cloud" # 본인의 Cluster URL
+MQTT_PORT = 8883  # 클라우드 표준 보안 포트
+MQTT_USER = "plug1"
+MQTT_PASS = "Ab1234567@"
+MQTT_TOPIC_CMD = "cmnd/living_fan/Power"
 
 # ==========================================
 # 2. 기본 UI 설정
@@ -37,13 +43,28 @@ if "alert_sent" not in st.session_state:
 # ==========================================
 # 4. 함수 정의
 # ==========================================
-def control_tasmota(ip, cmd):
+def control_tasmota_mqtt(cmd):
     try:
-        url = f"http://{ip}/cm?cmnd=Power%20{cmd}"
-        res = requests.get(url, timeout=3)
-        return res.status_code == 200
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        
+        # 1. 아이디/비밀번호 설정
+        client.username_pw_set(MQTT_USER, MQTT_PASS)
+        
+        # 2. TLS 보안 설정 (클라우드 접속 필수)
+        client.tls_set() 
+        
+        # 3. 연결 및 발행
+        client.connect(MQTT_BROKER, MQTT_PORT, 60)
+        client.loop_start()
+        
+        msg = client.publish(MQTT_TOPIC_CMD, cmd, qos=1)
+        msg.wait_for_publish()
+        
+        client.loop_stop()
+        client.disconnect()
+        return True
     except Exception as e:
-        st.error(f"Tasmota 연결 실패: {e}")
+        st.error(f"클라우드 MQTT 접속 실패: {e}")
         return False
 
 def fetch_data():
@@ -226,23 +247,28 @@ if data:
     now = time.time()
     elapsed = now - st.session_state.last_changed
 
-    st.sidebar.header("🕹️ 제어 상태")
-    st.sidebar.write(f"현재 상태: **{st.session_state.plug_state}**")
-
-    if elapsed < MIN_HOLD_SECONDS:
-        st.sidebar.info(f"⏳ 유지 모드: {int(MIN_HOLD_SECONDS - elapsed)}초 후 변경 가능")
-    else:
+    # 환기 제어 로직
+    if elapsed >= MIN_HOLD_SECONDS:
         if co2 >= 800 and st.session_state.plug_state != "ON":
-            if control_tasmota(DEVICE_IP, "ON"):
+            if control_tasmota_mqtt("ON"):
                 st.session_state.plug_state = "ON"
                 st.session_state.last_changed = now
-                st.toast("환기 시스템 가동!", icon="✅")
-
+                st.toast("환기 가동!", icon="✅")
         elif co2 < 500 and st.session_state.plug_state != "OFF":
-            if control_tasmota(DEVICE_IP, "OFF"):
+            if control_tasmota_mqtt("OFF"):
                 st.session_state.plug_state = "OFF"
                 st.session_state.last_changed = now
-                st.toast("환기 시스템 정지", icon="🛑")
+                st.toast("환기 정지", icon="🛑")
+
+    # 이메일 알림 로직 (하나로 통합)
+    if co2 > 1000:
+        st.error(f"🚨 CO2 수치 위험! 현재 {co2}ppm")
+        if not st.session_state.alert_sent:
+            with st.spinner("📧 경고 메일 발송 중..."):
+                send_email_alert("🚨 공기질 위험 경보", f"현재 CO2 수치가 {co2}ppm 입니다.")
+                st.session_state.alert_sent = True
+    elif co2 < 800:
+        st.session_state.alert_sent = False
 
     # ==========================================
     # 8. 경고 및 이메일 알림 로직

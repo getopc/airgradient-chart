@@ -217,14 +217,32 @@ if data:
 
     # 2. 특정 컬럼 소수점 1자리로 반올림 (추가된 부분)
     # round(1)은 소수점 첫째 자리까지 남깁니다.
-    latest_row["temp"] = latest_row["temp"].astype(float).round(1)
-    latest_row["PM2.5"] = latest_row["PM2.5"].astype(float).round(1)
+    latest_row["temp"] = pd.to_numeric(
+        latest_row["temp"],
+        errors="coerce"
+    ).round(1)
 
-    # 3. 컬럼명 변경
-    latest_row.columns = ["측정 시간", "CO2 (ppm)", "온도 (°C)", "습도 (%)", "TVOC", "NOX", "PM2.5"]
+    latest_row["PM2.5"] = pd.to_numeric(
+        latest_row["PM2.5"],
+        errors="coerce"
+    ).round(1)
 
-    # 4. 출력 (인덱스 숨기기 포함)
-    st.table(latest_row.set_index("측정 시간"))
+    latest_row.columns = [
+        "측정 시간",
+        "CO2 (ppm)",
+        "온도 (°C)",
+        "습도 (%)",
+        "TVOC",
+        "NOX",
+        "PM2.5"
+    ]
+
+    styled_df = latest_row.set_index("측정 시간").style.format({
+        "온도 (°C)": "{:.1f}",
+        "PM2.5": "{:.1f}"
+    })
+
+    st.table(styled_df)
 
     # 자동 제어 설정 (사이드바)
     st.sidebar.divider()

@@ -11,7 +11,6 @@ import paho.mqtt.client as mqtt
 # ==========================================
 # 1. 설정값
 # ==========================================
-DEVICE_IP = "172.30.1.94"
 API_URL = "https://api.airgradient.com/public/api/v1/locations/measures/current"
 API_TOKEN = "74cf04f0-11c0-4498-9d7f-e191977faeb4"
 MIN_HOLD_SECONDS = 300
@@ -21,12 +20,39 @@ MQTT_BROKER = "8738ec3a2de44ce7926a5be975e970e3.s1.eu.hivemq.cloud"
 MQTT_PORT = 8883
 MQTT_USER = "plug1"
 MQTT_PASS = "Ab1234567@"
-MQTT_TOPIC_CMD = "cmnd/living_fan/Power" # 대소문자 Power로 수정
+MQTT_TOPIC_CMD = "cmnd/living_fan/Power"
 
+if "device_ip" not in st.session_state:
+    st.session_state.device_ip = None  # 처음엔 IP가 없음
+if "plug_state" not in st.session_state:
+    st.session_state.plug_state = "UNKNOWN"
+if "last_changed" not in st.session_state:
+    st.session_state.last_changed = time.time() - MIN_HOLD_SECONDS
+if "alert_sent" not in st.session_state:
+    st.session_state.alert_sent = False
+
+st.set_page_config(page_title="스마트 환기 통합 대시보드", layout="wide")
+
+# IP가 아직 입력되지 않았다면 입력 화면을 보여줌
+if st.session_state.device_ip is None:
+    st.title("🔗 장치 연결")
+    st.info("AirGradient 기기의 현재 IP 주소를 입력해주세요.")
+    
+    input_ip = st.text_input("Device IP Address", placeholder="예: 172.30.1.94")
+    
+    if st.button("대시보드 시작하기"):
+        if input_ip:
+            st.session_state.device_ip = input_ip
+            st.success(f"IP {input_ip}가 설정되었습니다!")
+            time.sleep(1)
+            st.rerun()
+        else:
+            st.error("IP 주소를 입력해야 합니다.")
+    st.stop() # IP 입력 전까지 아래 코드를 실행하지 않음
+DEVICE_IP = st.session_state.device_ip
 # ==========================================
 # 2. 기본 UI 및 세션 초기화
 # ==========================================
-st.set_page_config(page_title="스마트 환기 통합 대시보드", layout="wide")
 st.title("📡 공기질 + 자동 환기 제어 시스템")
 
 if "plug_state" not in st.session_state:
@@ -90,6 +116,11 @@ def normalize_history_df(history_df):
     history_df = history_df.ffill().fillna(0)
     return history_df
 
+st.sidebar.markdown(f"**📍 연결된 IP:** `{DEVICE_IP}`")
+if st.sidebar.button("IP 재설정"):
+    st.session_state.device_ip = None
+    st.rerun()
+
 # ==========================================
 # 5. 데이터 처리 및 UI
 # ==========================================
@@ -126,43 +157,74 @@ if data:
     # 그래프
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("📊 공기질 지표 추이")
-        fig1 = px.line(history_df, x="time", y=["tvoc", "PM2.5", "nox"], template="plotly_dark")
-        st.plotly_chart(fig1, use_container_width=True)
+        st.subheader("공기질 지표 (TVOC, PM2.5, NOX)")
+        chart_cols = [col for col in ["tvoc", "PM2.5", "nox"] if col in history_df.columns]
+    
+        # 1. 그래프 생성
+        fig1 = px.line(history_df, x="time", y=chart_cols, template="plotly_dark")
+    
+        # 2. 레이아웃 설정 (축 고정 및 드래그 방지)
+        fig1.update_layout(
+            xaxis=dict(fixedrange=True), 
+            yaxis=dict(fixedrange=True), 
+            dragmode=False
+        )
+    
+        # 3. 마지막에 한 번만 출력 (설정값 포함)
+        st.plotly_chart(
+            fig1, 
+            use_container_width=True, 
+            config={
+                'displayModeBar': False, 
+                'scrollZoom': False
+            }
+        )
+
     with col2:
-        st.subheader("📈 CO2 농도 변화")
+        st.subheader("CO2 농도 변화")
+        
+        # 1. 그래프 생성
         fig2 = px.line(history_df, x="time", y="co2", template="plotly_dark")
-        st.plotly_chart(fig2, use_container_width=True)
+        
+        # 2. 레이아웃 설정 (축 고정, 드래그 방지)
+        fig2.update_layout(
+            xaxis=dict(fixedrange=True), 
+            yaxis=dict(fixedrange=True),
+            dragmode=False
+        )
+        
+        # 3. 마지막에 한 번만 출력 (메뉴바 숨기기, 휠 줌 차단 포함)
+        st.plotly_chart(
+            fig2, 
+            use_container_width=True, 
+            config={
+                'displayModeBar': False, 
+                'scrollZoom': False
+            }
+        )
 
-    # 상세 데이터 표
-    st.subheader("📋 최근 측정 기록")
-    latest_row = history_df.tail(1).copy()
-    latest_row["time"] = latest_row["time"].dt.strftime("%Y-%m-%d %H:%M:%S")
-    col_map = {
-        "time": "시간",
-        "co2": "CO2(ppm)",
-        "temp": "온도(°C)",
-        "humidity": "습도(%)",
-        "tvoc": "TVOC",
-        "nox": "NOX",
-        "PM2.5": "PM2.5"
-    }
+    st.subheader("📋 최근 측정 기록 (상세 데이터)")
 
-    # 2. 존재하는 컬럼만 추출
-    existing_display_cols = [col for col in col_map.keys() if col in history_df.columns]
-    latest_row = history_df[existing_display_cols].tail(1).copy()
+    # (데이터 전처리 로직은 동일)
+    display_df = history_df.copy()
+    display_df["time"] = pd.to_datetime(display_df["time"], errors="coerce").dt.strftime("%Y-%m-%d %H:%M:%S")
+    display_df = display_df.sort_values(by="time", ascending=False)
+    display_cols = [col for col in ["time", "co2", "temp", "humidity", "tvoc", "nox", "PM2.5"] if col in display_df.columns]
+    latest_row = display_df[display_cols].head(1)
 
-    # 3. 시간 포맷 변경 (존재할 경우만)
-    if "time" in latest_row.columns:
-        latest_row["time"] = pd.to_datetime(latest_row["time"]).dt.strftime("%Y-%m-%d %H:%M:%S")
+    # 1. 데이터 준비
+    latest_row = display_df[display_cols].head(1).copy()
 
-    # 4. 안전하게 이름 변경 (rename 사용)
-    latest_row = latest_row.rename(columns=col_map)
+    # 2. 특정 컬럼 소수점 1자리로 반올림 (추가된 부분)
+    # round(1)은 소수점 첫째 자리까지 남깁니다.
+    latest_row["temp"] = latest_row["temp"].astype(float).round(1)
+    latest_row["PM2.5"] = latest_row["PM2.5"].astype(float).round(1)
 
-    # 5. 출력
-    if not latest_row.empty:
-        # '시간' 컬럼이 있으면 인덱스로 설정하고, 없으면 그대로 출력
-        st.table(latest_row.set_index("시간") if "시간" in latest_row.columns else latest_row)
+    # 3. 컬럼명 변경
+    latest_row.columns = ["측정 시간", "CO2 (ppm)", "온도 (°C)", "습도 (%)", "TVOC", "NOX", "PM2.5"]
+
+    # 4. 출력 (인덱스 숨기기 포함)
+    st.table(latest_row.set_index("측정 시간"))
 
     # 자동 제어 설정 (사이드바)
     st.sidebar.divider()

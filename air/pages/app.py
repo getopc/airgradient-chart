@@ -32,23 +32,6 @@ if "alert_sent" not in st.session_state:
     st.session_state.alert_sent = False
 
 st.set_page_config(page_title="스마트 환기 통합 대시보드", layout="wide")
-
-# IP가 아직 입력되지 않았다면 입력 화면을 보여줌
-if st.session_state.device_ip is None:
-    st.title("🔗 장치 연결")
-    st.info("AirGradient 기기의 현재 IP 주소를 입력해주세요.")
-    
-    input_ip = st.text_input("Device IP Address", placeholder="예: 172.30.1.94")
-    
-    if st.button("대시보드 시작하기"):
-        if input_ip:
-            st.session_state.device_ip = input_ip
-            st.success(f"IP {input_ip}가 설정되었습니다!")
-            time.sleep(1)
-            st.rerun()
-        else:
-            st.error("IP 주소를 입력해야 합니다.")
-    st.stop() # IP 입력 전까지 아래 코드를 실행하지 않음
 DEVICE_IP = st.session_state.device_ip
 # ==========================================
 # 2. 기본 UI 및 세션 초기화
@@ -115,11 +98,6 @@ def normalize_history_df(history_df):
             history_df[col] = pd.to_numeric(history_df[col], errors="coerce")
     history_df = history_df.ffill().fillna(0)
     return history_df
-
-st.sidebar.markdown(f"**📍 연결된 IP:** `{DEVICE_IP}`")
-if st.sidebar.button("IP 재설정"):
-    st.session_state.device_ip = None
-    st.rerun()
 
 # ==========================================
 # 5. 데이터 처리 및 UI
@@ -227,6 +205,11 @@ if data:
         errors="coerce"
     ).round(1)
 
+    latest_row["co2"] = pd.to_numeric(latest_row["co2"], errors="coerce").fillna(0).astype(int)# 출력 예시: 450
+    latest_row["humidity"] = pd.to_numeric(latest_row["humidity"], errors="coerce").fillna(0).astype(int)
+    latest_row["tvoc"] = pd.to_numeric(latest_row["tvoc"], errors="coerce").fillna(0).astype(int)
+    latest_row["nox"] = pd.to_numeric(latest_row["nox"], errors="coerce").fillna(0).astype(int)
+
     latest_row.columns = [
         "측정 시간",
         "CO2 (ppm)",
@@ -242,45 +225,7 @@ if data:
         "PM2.5": "{:.1f}"
     })
 
-    st.table(styled_df)
-
-    # 자동 제어 설정 (사이드바)
-    st.sidebar.divider()
-    auto_mode = st.sidebar.toggle("🤖 자동 환기 모드", value=True)
-    st.sidebar.write(f"현재 상태: **{st.session_state.plug_state}**")
-
-    # 수동 제어 버튼
-    st.divider()
-    st.subheader("🎮 장치 제어")
-    c_on, c_off = st.columns(2)
-    with c_on:
-        if st.button("🔌 즉시 켜기 (ON)", use_container_width=True, type="primary"):
-            if control_tasmota_mqtt("ON"):
-                st.session_state.plug_state = "ON"
-                st.session_state.last_changed = time.time()
-                st.rerun()
-    with c_off:
-        if st.button("🚫 즉시 끄기 (OFF)", use_container_width=True):
-            if control_tasmota_mqtt("OFF"):
-                st.session_state.plug_state = "OFF"
-                st.session_state.last_changed = time.time()
-                st.rerun()
-
-    # 제어 로직 실행
-    now = time.time()
-    elapsed = now - st.session_state.last_changed
-    if auto_mode:
-        if elapsed >= MIN_HOLD_SECONDS:
-            if co2 >= 800 and st.session_state.plug_state != "ON":
-                if control_tasmota_mqtt("ON"):
-                    st.session_state.plug_state = "ON"
-                    st.session_state.last_changed = now
-            elif co2 < 500 and st.session_state.plug_state != "OFF":
-                if control_tasmota_mqtt("OFF"):
-                    st.session_state.plug_state = "OFF"
-                    st.session_state.last_changed = now
-        else:
-            st.sidebar.info(f"대기: {int(MIN_HOLD_SECONDS - elapsed)}초")
+    st.dataframe(styled_df, use_container_width=True)
 
     # 알림 로직
     if co2 > 1000:

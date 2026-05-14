@@ -36,7 +36,7 @@ DEVICE_IP = st.session_state.device_ip
 # ==========================================
 # 2. 기본 UI 및 세션 초기화
 # ==========================================
-st.title("📡 공기질 + 자동 환기 제어 시스템")
+st.title("📡 상세 페이지")
 
 if "plug_state" not in st.session_state:
     st.session_state.plug_state = "UNKNOWN"

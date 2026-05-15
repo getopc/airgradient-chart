@@ -79,7 +79,7 @@ def send_email_alert(subject, body):
 # 2. 데이터 처리 및 실행
 # ==========================================
 st.set_page_config(page_title="스마트 환기 통합 대시보드", layout="wide")
-st.title("📡 상세 페이)")
+st.title("📡 상세 페이지")
 
 res = requests.get(API_URL, params={"token": API_TOKEN}, timeout=5)
 if res.status_code == 200:

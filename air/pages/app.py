@@ -229,7 +229,6 @@ if data:
 
     # 알림 로직
     if co2 > 1000:
-        st.error(f"🚨 CO2 수치 위험! 현재 {co2}ppm")
         if not st.session_state.alert_sent:
             send_email_alert("🚨 공기질 위험 경보", f"현재 CO2 수치가 {co2}ppm 입니다.")
             st.session_state.alert_sent = True

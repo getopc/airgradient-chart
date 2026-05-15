@@ -79,12 +79,7 @@ def send_email_alert(subject, body):
 # 2. 데이터 처리 및 실행
 # ==========================================
 st.set_page_config(page_title="스마트 환기 통합 대시보드", layout="wide")
-st.title("📡 공기질 통합 대시보드 (알림 테스트)")
-
-# 초기화 버튼 (알림 다시 테스트용)
-if st.sidebar.button("알림 상태 초기화"):
-    st.session_state.alert_sent = False
-    st.sidebar.success("알림 기록이 초기화되었습니다.")
+st.title("📡 상세 페이)")
 
 res = requests.get(API_URL, params={"token": API_TOKEN}, timeout=5)
 if res.status_code == 200:
@@ -214,9 +209,6 @@ if res.status_code == 200:
                     st.error("❌ 이메일 발송 실패")
             else:
                 st.info(f"✅ 알림 발송 완료 상태 (감지된 항목: {items_str})")
-                if st.button("알림 기록 초기화 (테스트용)"):
-                    st.session_state.alert_sent = False
-                    st.rerun()
     else:
         # 모든 항목이 60점 초과인 경우 알림 상태 리셋 (선택 사항)
         # 공기가 다시 좋아졌을 때 자동으로 다음 위험 상황을 대비하게 하고 싶다면 아래 주석 해제

@@ -23,7 +23,7 @@ if "alert_sent" not in st.session_state:
 # =========================
 # 점수화 함수 정의
 # =========================
-ROOM_VOLUME = 24.0
+ROOM_VOLUME = 2.5
 CADR_SPEC = {"pm25": 200.0, "tvoc": 80.0, "nox": 60.0, "co2": 12.0}
 WEIGHTS = {"pm25": 0.30, "co2": 0.30, "tvoc": 0.20, "nox": 0.20}
 W_CONC, W_PERF = 0.6, 0.4

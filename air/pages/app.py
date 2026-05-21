@@ -14,7 +14,7 @@ import math
 # ==========================================
 API_URL = "https://api.airgradient.com/public/api/v1/locations/measures/current"
 API_TOKEN = "74cf04f0-11c0-4498-9d7f-e191977faeb4"
-REFRESH_INTERVAL = 10  # 테스트를 위해 인터벌을 조금 늘림
+REFRESH_INTERVAL = 10  
 FILE_PATH = "data_log.csv"
 
 if "alert_sent" not in st.session_state:

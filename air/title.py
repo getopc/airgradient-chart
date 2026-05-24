@@ -3,7 +3,7 @@ import requests
 import math
 import time
 import paho.mqtt.client as mqtt
-from streamlit_autorefresh import st_autorefresh
+import streamlit.components.v1 as components
 
 API_URL = "https://api.airgradient.com/public/api/v1/locations/measures/current"
 API_TOKEN = "74cf04f0-11c0-4498-9d7f-e191977faeb4"
@@ -60,7 +60,12 @@ st.markdown("""
 
 st.title("🏠 실시간 공기질 메인화면")
 st.caption(f"공간 부피 V = {ROOM_VOLUME:.0f} m³ 기준")
-st_autorefresh(interval=10000, key="air_quality_refresh")
+components.html(
+    """
+    <meta http-equiv="refresh" content="10">
+    """,
+    height=0,
+)
 
 # =========================
 # 점수화 함수

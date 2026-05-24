@@ -4,3 +4,4 @@ requests
 plotly
 paho-mqtt
 streamlit_autorefresh
+streamlit-autorefresh

@@ -3,7 +3,6 @@ import requests
 import math
 import time
 import paho.mqtt.client as mqtt
-import streamlit.components.v1 as components
 
 API_URL = "https://api.airgradient.com/public/api/v1/locations/measures/current"
 API_TOKEN = "74cf04f0-11c0-4498-9d7f-e191977faeb4"
@@ -13,6 +12,7 @@ MQTT_USER = "plug1"
 MQTT_PASS = "Ab1234567@"
 MQTT_TOPIC_CMD = "cmnd/living_fan/Power"
 MIN_HOLD_SECONDS = 300 # 상태 유지 시간 (5분)
+REFRESH_INTERVAL = 10
 
 # =========================
 # 고정 상수
@@ -60,11 +60,7 @@ st.markdown("""
 
 st.title("🏠 실시간 공기질 메인화면")
 st.caption(f"공간 부피 V = {ROOM_VOLUME:.0f} m³ 기준")
-components.html(
-    """
-    <meta http-equiv="refresh" content="10">
-    """,
-    height=0,
+
 )
 
 # =========================
@@ -346,3 +342,6 @@ if data:
 
 else:
     st.warning("데이터를 불러오는 중임")
+
+time.sleep(REFRESH_INTERVAL)
+st.rerun()

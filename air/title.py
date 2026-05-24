@@ -61,7 +61,7 @@ st.markdown("""
 st.title("🏠 실시간 공기질 메인화면")
 st.caption(f"공간 부피 V = {ROOM_VOLUME:.0f} m³ 기준")
 
-)
+
 
 # =========================
 # 점수화 함수

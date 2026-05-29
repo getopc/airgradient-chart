@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
-import anthropic
+# anthropic 대신 google-genai 라이브러리를 임포트합니다.
+from google import genai
 
 # ==========================================
 # 설정값 (기존 코드와 동일한 API)
@@ -47,7 +48,7 @@ def fetch_data():
         return None
 
 # ==========================================
-# Claude AI 분석 (스트리밍)
+# Gemini AI 분석 (스트리밍)
 # ==========================================
 def run_ai_analysis(air_data: dict):
     prompt = f"""
@@ -72,19 +73,23 @@ def run_ai_analysis(air_data: dict):
 전문 용어는 쉽게 풀어서 설명하고, 이모지를 적절히 사용해 읽기 쉽게 작성해주세요.
 """
 
-    client = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
+    # st.secrets["GEMINI_API_KEY"]를 자동으로 찾아 클라이언트를 생성합니다.
+    client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY"))
     
     with st.spinner("🧠 AI가 공기질을 분석하고 있습니다..."):
-        with client.messages.stream(
-            model="claude-opus-4-5",
-            max_tokens=1500,
-            messages=[{"role": "user", "content": prompt}]
-        ) as stream:
-            report_placeholder = st.empty()
-            full_text = ""
-            for text in stream.text_stream:
-                full_text += text
-                report_placeholder.markdown(full_text)
+        # 최신 고성능 모델인 gemini-2.5-flash를 사용하며, 스트리밍 응답을 호출합니다.
+        response_stream = client.models.generate_content_stream(
+            model='gemini-2.5-flash',
+            contents=prompt,
+        )
+        
+        report_placeholder = st.empty()
+        full_text = ""
+        
+        # 청크(chunk) 단위로 텍스트를 받아와 실시간으로 화면에 출력합니다.
+        for chunk in response_stream:
+            full_text += chunk.text
+            report_placeholder.markdown(full_text)
 
 # ==========================================
 # 메인 실행

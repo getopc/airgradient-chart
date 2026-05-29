@@ -3,4 +3,3 @@ pandas
 requests
 plotly
 paho-mqtt
-google-genai

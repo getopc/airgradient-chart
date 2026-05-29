@@ -1,5 +1,0 @@
-streamlit
-pandas
-requests
-paho-mqtt
-plotly

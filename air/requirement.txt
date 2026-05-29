@@ -3,4 +3,4 @@ pandas
 requests
 plotly
 paho-mqtt
-anthropic==0.4.0
+genai

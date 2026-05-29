@@ -5,4 +5,4 @@ plotly
 paho-mqtt
 streamlit_autorefresh
 streamlit-autorefresh
-anthrophic
+anthropic

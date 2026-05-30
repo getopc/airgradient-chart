@@ -80,7 +80,7 @@ NOx: {air_data.get("nox")}
 
     try:
         response_stream = client.models.generate_content_stream(
-            model="gemini-2.0-flash",
+            model="gemini-1.5-flash",
             contents=prompt
         )
 

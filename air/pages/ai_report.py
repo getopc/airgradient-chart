@@ -132,8 +132,10 @@ if data:
 
     # AI 분석 자동 실행
     st.subheader("🤖 AI 분석 리포트")
-    run_ai_analysis(air_data)
-
+    if st.button("AI 분석 실행"):
+        run_ai_analysis(air_data)
+    else:
+        st.info("버튼을 누르면 현재 센서값을 바탕으로 AI 분석을 실행함.")
     st.divider()
 
     # 재분석 버튼

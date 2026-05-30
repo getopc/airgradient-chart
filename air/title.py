@@ -338,7 +338,7 @@ if data:
         else:
             st.sidebar.info(f"⏳ 상태 유지 중: {int(MIN_HOLD_SECONDS - elapsed)}초 후 판단")
     if st.button("📊 상세 정보 화면으로 이동", use_container_width=True):
-        st.switch_page("pages/app.py")
+        st.switch_page("pages/상세.py")
 
 else:
     st.warning("데이터를 불러오는 중임")

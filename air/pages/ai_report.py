@@ -59,24 +59,22 @@ def run_ai_analysis(air_data):
 
     client = genai.Client(api_key=api_key)
 
-    st.write("air_data type:", type(air_data))
-    st.write(air_data)
-    recent_data = air_data.tail(30)
-    data_summary = recent_data.describe().to_string()
+    if not isinstance(air_data, dict):
+        st.error(f"air_data 타입이 dict가 아님: {type(air_data)}")
+        st.stop()
 
     prompt = f"""
-다음은 실내 공기질 측정 데이터의 최근 통계 요약임.
+다음은 현재 실내 공기질 측정값임.
 
-{data_summary}
+PM2.5: {air_data.get("pm25")} µg/m³
+CO2: {air_data.get("co2")} ppm
+TVOC: {air_data.get("tvoc")}
+NOx: {air_data.get("nox")}
+온도: {air_data.get("temp")} ℃
+습도: {air_data.get("humidity")} %
 
-다음 항목을 분석해줘.
-1. 현재 실내 공기질 상태
-2. PM2.5, CO2, TVOC, NOx 중 문제가 되는 항목
-3. 가능한 원인
-4. 공기청정기 또는 환기 제어 제안
-5. 사용자가 이해하기 쉬운 최종 요약
-
-한국어로 작성해줘.
+위 데이터를 바탕으로 현재 실내 공기질 상태를 분석하고,
+문제가 되는 항목, 원인, 개선 방법을 한국어로 작성해줘.
 """
 
     try:

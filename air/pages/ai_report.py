@@ -138,9 +138,6 @@ if data:
         st.info("버튼을 누르면 현재 센서값을 바탕으로 AI 분석을 실행함.")
     st.divider()
 
-    # 재분석 버튼
-    if st.button("🔄 다시 분석하기", use_container_width=True):
-        st.rerun()
 
     # 구독 해제
     if st.button("🔒 로그아웃 (구독 잠금)", use_container_width=True):

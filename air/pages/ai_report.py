@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 # anthropic 대신 google-genai 라이브러리를 임포트합니다.
 from google import genai
+from google.genai import errors
 
 # ==========================================
 # 설정값 (기존 코드와 동일한 API)

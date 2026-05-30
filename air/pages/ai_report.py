@@ -50,46 +50,55 @@ def fetch_data():
 # ==========================================
 # Gemini AI 분석 (스트리밍)
 # ==========================================
-def run_ai_analysis(air_data: dict):
+def run_ai_analysis(air_data):
+    api_key = st.secrets.get("GEMINI_API_KEY")
+
+    if not api_key:
+        st.error("GEMINI_API_KEY가 Streamlit Secrets에 설정되지 않았음.")
+        st.stop()
+
+    client = genai.Client(api_key=api_key)
+
+    recent_data = air_data.tail(30)
+    data_summary = recent_data.describe().to_string()
+
     prompt = f"""
-당신은 실내 공기질 전문 분석 AI입니다.
-아래는 현재 측정된 실내 공기질 데이터입니다. 이를 바탕으로 전문적이고 친절한 한국어 분석 리포트를 작성해주세요.
+다음은 실내 공기질 측정 데이터의 최근 통계 요약임.
 
-## 현재 측정값
-- PM2.5 (미세먼지): {air_data['pm25']} μg/m³
-- CO₂ (이산화탄소): {air_data['co2']} ppm
-- TVOC (휘발성유기화합물): {air_data['tvoc']}
-- NOx (질소산화물): {air_data['nox']}
-- 온도: {air_data['temp']} °C
-- 습도: {air_data['humidity']} %
+{data_summary}
 
-## 리포트 작성 형식 (아래 순서대로 작성)
-1. **종합 평가** — 전체적인 공기질 상태를 2~3문장으로 요약
-2. **항목별 분석** — 각 수치가 기준치 대비 어떤 상태인지, 건강에 미치는 영향
-3. **위험 요소** — 현재 수치 중 주의가 필요한 항목과 그 이유
-4. **행동 권고** — 지금 당장 취해야 할 조치 (환기, 청정기, 외출 자제 등)
-5. **예측 및 조언** — 현재 추세가 지속될 경우 향후 상황과 장기적 관리 팁
+다음 항목을 분석해줘.
+1. 현재 실내 공기질 상태
+2. PM2.5, CO2, TVOC, NOx 중 문제가 되는 항목
+3. 가능한 원인
+4. 공기청정기 또는 환기 제어 제안
+5. 사용자가 이해하기 쉬운 최종 요약
 
-전문 용어는 쉽게 풀어서 설명하고, 이모지를 적절히 사용해 읽기 쉽게 작성해주세요.
+한국어로 작성해줘.
 """
 
-    # st.secrets["GEMINI_API_KEY"]를 자동으로 찾아 클라이언트를 생성합니다.
-    client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY"))
-    
-    with st.spinner("🧠 AI가 공기질을 분석하고 있습니다..."):
-        # 최신 고성능 모델인 gemini-2.5-flash를 사용하며, 스트리밍 응답을 호출합니다.
+    try:
         response_stream = client.models.generate_content_stream(
-            model='gemini-2.5-flash',
-            contents=prompt,
+            model="gemini-2.0-flash",
+            contents=prompt
         )
-        
-        report_placeholder = st.empty()
+
+        result_box = st.empty()
         full_text = ""
-        
-        # 청크(chunk) 단위로 텍스트를 받아와 실시간으로 화면에 출력합니다.
+
         for chunk in response_stream:
-            full_text += chunk.text
-            report_placeholder.markdown(full_text)
+            if chunk.text:
+                full_text += chunk.text
+                result_box.markdown(full_text)
+
+    except errors.ClientError as e:
+        st.error("Gemini API 요청이 실패함.")
+        st.code(str(e))
+        st.info("API 키, 모델 이름, 할당량, 요청 데이터 크기를 확인해야 함.")
+
+    except Exception as e:
+        st.error("예상하지 못한 오류 발생")
+        st.code(str(e))
 
 # ==========================================
 # 메인 실행

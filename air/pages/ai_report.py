@@ -59,6 +59,14 @@ def run_ai_analysis(air_data):
         st.stop()
 
     client = genai.Client(api_key=api_key)
+    st.subheader("사용 가능한 Gemini 모델 목록")
+
+    try:
+        for model in client.models.list():
+            st.write(model.name, model.supported_actions)
+    except Exception as e:
+        st.error("모델 목록 조회 실패")
+        st.code(str(e))
 
     if not isinstance(air_data, dict):
         st.error(f"air_data 타입이 dict가 아님: {type(air_data)}")

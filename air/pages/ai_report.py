@@ -59,7 +59,7 @@ def run_ai_analysis(air_data):
 
     client = genai.Client(api_key=api_key)
 
-    recent_data = air_data.tail(30)
+    st.write("air_data type:", type(air_data))
     st.write(air_data)
     recent_data = air_data.tail(30)
     data_summary = recent_data.describe().to_string()

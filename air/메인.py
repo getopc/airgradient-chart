@@ -341,10 +341,10 @@ if data:
         if elapsed >= MIN_HOLD_SECONDS:
             # 켜기 조건: 네 가지 항목 중 하나라도 60점 이하인 경우
             # (하나라도 공기질이 나빠지면 팬 가동)
-            if (conc_scores["co2"] <= 60 or 
-                conc_scores["pm25"] <= 60 or 
-                conc_scores["tvoc"] <= 60 or 
-                conc_scores["nox"] <= 60) and st.session_state.plug_state != "ON":
+            if (final_scores["co2"] <= 60 or 
+                final_scores["pm25"] <= 60 or 
+                final_scores["tvoc"] <= 60 or 
+                final_scores["nox"] <= 60) and st.session_state.plug_state != "ON":
             
                 if control_tasmota_mqtt("ON"):
                     st.session_state.plug_state = "ON"
@@ -355,10 +355,10 @@ if data:
         
             # 끄기 조건: 네 가지 항목 모두가 80점 이상으로 회복되었을 때
             # (모든 지표가 깨끗해져야 팬 정지)
-            elif (conc_scores["co2"] >= 80 and 
-                  conc_scores["pm25"] >= 80 and 
-                  conc_scores["tvoc"] >= 80 and 
-                  conc_scores["nox"] >= 80) and st.session_state.plug_state != "OFF":
+            elif ((final_scores["co2"] <= 80 or 
+                final_scores["pm25"] <= 80 or 
+                final_scores["tvoc"] <= 80 or 
+                final_scores["nox"] <= 80) and st.session_state.plug_state != "OFF":
             
                 if control_tasmota_mqtt("OFF"):
                     st.session_state.plug_state = "OFF"

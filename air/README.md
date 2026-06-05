@@ -8,6 +8,8 @@
 
 또한 기준값 초과 시 이메일 알림 또는 플러그 제어 기능을 통해 실내 공기질 개선을 유도할 수 있도록 구성하였습니다.
 
+Gemini AI를 활용하여 현재 공기질 데이터를 분석하고, 종합 평가, 위험 요소, 행동 권고 사항을 포함한 분석 리포트를 제공합니다.
+
 ## 2. 주요 기능
 
 * 실내 공기질 데이터 표시
@@ -99,8 +101,9 @@ CSV 파일의 기본 컬럼 구조는 다음과 같습니다.
 ```toml
 EMAIL_ADDRESS = "your_email@gmail.com"
 EMAIL_PASSWORD = "your_app_password"
-AIRGRADIENT_API_KEY = "your_api_key"
-PLUG_IP = "192.168.0.10"
+AIRGRADIENT_API_TOKEN = "your_airgradient_api_token"
+SUBSCRIPTION_CODE = "your_subscription_code"
+SUBSCRIPTION_CODE = "your_subscription_code"
 ```
 
 Streamlit Community Cloud에 배포할 경우, 앱 설정의 Secrets 메뉴에 동일한 내용을 입력해야 합니다.
@@ -123,7 +126,7 @@ __pycache__/
 배포된 대시보드는 아래 링크에서 확인할 수 있습니다.
 
 ```text
-https://프로젝트명.streamlit.app
+https://y9aciw4c4iidunh2vcaxqf.streamlit.app/
 ```
 
 ## 11. 제출 내용

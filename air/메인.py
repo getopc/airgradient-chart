@@ -98,23 +98,23 @@ st.caption(f"공간 부피 V = {ROOM_VOLUME:.0f} m³ 기준")
 # 점수화 함수
 # =========================
 def score_pm25(v):
-    if v <= 15: return 100
-    if v <= 35: return 80
-    if v <= 55: return 60
+    if v <= 5: return 100
+    if v <= 15: return 80
+    if v <= 35: return 60
     if v <= 75: return 40
     return 20
 
 def score_co2(v):
-    if v <= 600:  return 100
-    if v <= 800:  return 80
-    if v <= 1000: return 60
-    if v <= 1500: return 40
+    if v <= 800:  return 100
+    if v <= 1000:  return 80
+    if v <= 1500: return 60
+    if v <= 2500: return 40
     return 20
 
 def score_tvoc(v):
     if v <= 100: return 100
-    if v <= 200: return 80
-    if v <= 300: return 60
+    if v <= 150: return 80
+    if v <= 250: return 60
     if v <= 400: return 40
     return 20
 
@@ -122,7 +122,7 @@ def score_nox(v):
     if v <= 20:  return 100
     if v <= 100: return 80
     if v <= 150: return 60
-    if v <= 250: return 40
+    if v <= 200: return 40
     return 20
 
 def score_ach(ach):

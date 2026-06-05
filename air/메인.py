@@ -35,25 +35,56 @@ st.set_page_config(page_title="공기질 메인화면", layout="wide")
 
 st.markdown("""
 <style>
+/* Streamlit 전체 테마 색상 변수 사용 */
 [data-testid="stMetric"] {
-    background-color: #ffffff; padding: 20px; border-radius: 20px;
-    border: 1px solid #444; text-align: center;
+    background-color: var(--secondary-background-color);
+    color: var(--text-color);
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid rgba(128,128,128,0.35);
+    text-align: center;
 }
-[data-testid="stMetricLabel"] { font-size: 26px !important; }
-[data-testid="stMetricValue"] { font-size: 48px !important; }
-[data-testid="stMetricDelta"] { font-size: 20px !important; }
+
+/* metric 내부 글자색 강제 지정 */
+[data-testid="stMetricLabel"],
+[data-testid="stMetricValue"],
+[data-testid="stMetricDelta"] {
+    color: var(--text-color) !important;
+}
+
+[data-testid="stMetricLabel"] { 
+    font-size: 26px !important; 
+}
+
+[data-testid="stMetricValue"] { 
+    font-size: 48px !important; 
+}
+
+[data-testid="stMetricDelta"] { 
+    font-size: 20px !important; 
+}
 
 .iaq-banner {
-    padding: 35px; border-radius: 25px; text-align: center;
-    color: white; margin-bottom: 20px;
+    padding: 35px;
+    border-radius: 25px;
+    text-align: center;
+    color: white;
+    margin-bottom: 20px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
+
 .iaq-banner h1 { font-size: 60px; margin: 0; }
 .iaq-banner h2 { font-size: 80px; margin: 8px 0; }
 .iaq-banner p  { font-size: 24px; margin: 0; }
+
 .sub-grade {
-    display:inline-block; padding:5px 12px; border-radius:10px;
-    color:white; font-weight:bold; font-size:16px; margin-top:6px;
+    display:inline-block;
+    padding:5px 12px;
+    border-radius:10px;
+    color:white;
+    font-weight:bold;
+    font-size:16px;
+    margin-top:6px;
 }
 </style>
 """, unsafe_allow_html=True)

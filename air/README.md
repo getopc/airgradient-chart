@@ -17,11 +17,12 @@
 * CSV 파일 기반 측정 데이터 저장 및 불러오기
 * 기준값 초과 시 이메일 알림
 * Streamlit Secrets를 이용한 이메일 비밀번호 및 API 키 관리
-* 스마트 플러그 제어 기능
+* 스마트 플러그 자동/수동 제어 기능
+* Gemini AI 기반 공기질 분석 리포트 제공
+* 구독 코드를 기반으로 AI 분석 페이지 잠금 기능
 
 ## 3. 프로젝트 구조
 
-```text
 air/
 ├─ pages/
 │  ├─ 구독_AI.py
@@ -33,17 +34,19 @@ air/
 ├─ requirements.txt
 ├─ README.md
 └─ .gitignore
-```
+
 
 ## 4. 실행 환경
 
 본 프로젝트는 Python 기반 Streamlit 대시보드로 제작되었습니다.
 
 - Python 3.x
-- Streamlit
-- Pandas
-- Plotly
-- Requests
+- streamlit
+- pandas
+- requests
+- plotly
+- paho-mqtt
+- google-genai
 
 필요한 라이브러리는 `requirements.txt`에 정리되어 있습니다.
 

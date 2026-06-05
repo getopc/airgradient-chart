@@ -22,7 +22,7 @@
 * 구독 코드를 기반으로 AI 분석 페이지 잠금 기능
 
 ## 3. 프로젝트 구조
-
+```
 air/
 ├─ pages/
 │  ├─ 구독_AI.py
@@ -34,7 +34,7 @@ air/
 ├─ requirements.txt
 ├─ README.md
 └─ .gitignore
-
+```
 
 ## 4. 실행 환경
 

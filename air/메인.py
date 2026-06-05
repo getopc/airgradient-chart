@@ -355,7 +355,7 @@ if data:
         
             # 끄기 조건: 네 가지 항목 모두가 80점 이상으로 회복되었을 때
             # (모든 지표가 깨끗해져야 팬 정지)
-            elif ((final_scores["co2"] <= 80 or 
+            elif (final_scores["co2"] <= 80 or 
                 final_scores["pm25"] <= 80 or 
                 final_scores["tvoc"] <= 80 or 
                 final_scores["nox"] <= 80) and st.session_state.plug_state != "OFF":

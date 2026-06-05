@@ -210,9 +210,7 @@ if res.status_code == 200:
             else:
                 st.info(f"✅ 알림 발송 완료 상태 (감지된 항목: {items_str})")
     else:
-        # 모든 항목이 60점 초과인 경우 알림 상태 리셋 (선택 사항)
-        # 공기가 다시 좋아졌을 때 자동으로 다음 위험 상황을 대비하게 하고 싶다면 아래 주석 해제
-        # st.session_state.alert_sent = False
+        st.session_state.alert_sent = False
         st.success("✨ 모든 공기질 항목이 양호한 수준입니다.")
 
 else:

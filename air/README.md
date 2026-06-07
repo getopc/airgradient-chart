@@ -103,7 +103,7 @@ EMAIL_ADDRESS = "your_email@gmail.com"
 EMAIL_PASSWORD = "your_app_password"
 AIRGRADIENT_API_TOKEN = "your_airgradient_api_token"
 SUBSCRIPTION_CODE = "your_subscription_code"
-
+GEMINI_API_KEY = "your_Gemini_Api_Key"
 ```
 
 Streamlit Community Cloud에 배포할 경우, 앱 설정의 Secrets 메뉴에 동일한 내용을 입력해야 합니다.

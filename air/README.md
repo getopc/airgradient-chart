@@ -129,6 +129,13 @@ __pycache__/
 https://y9aciw4c4iidunh2vcaxqf.streamlit.app/
 ```
 
+## 10.1 실행 링크
+
+배포된 모바일용 대시보드는 아래 링크에서 확인할 수 있습니다.
+```text
+https://x.thunkable.com/copy/05759bc87eeb5f503d1ac270ec21ba07
+```
+
 ## 11. 제출 내용
 
 본 GitHub 저장소에는 대시보드 소스 코드, 실행에 필요한 라이브러리 목록, 샘플 데이터, 실행 방법, Secrets 설정 예시를 포함하였습니다.
